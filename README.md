@@ -118,11 +118,6 @@ Select an option:
 ```bash
 ./bin/flightfactor
 ```
-or if you have a version specifically for pre-trained weights, you’d do:
-```bash
-./bin/flightfactor
-```
-(with the code that omits training and loads from `nn_weights.bin`).
 
 ---
 
