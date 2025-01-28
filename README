@@ -1,196 +1,220 @@
-== FlightFactor ==
+```markdown
+# FlightFactor
 
-FlightFactor is a suite of C-based command-line tools that help generate sample airline data, train a neural network model to predict flight load factor and profitability, and then interact with predictions. These tools are illustrative of how an airline might implement a basic data-driven forecasting workflow in C.
+**FlightFactor** is a suite of C-based command-line tools for generating sample airline data, training a neural network model, and performing interactive profitability/load forecasting. This project showcases a basic approach to **data-driven airline forecasting** in C.
 
+---
 
-== 1. Project Overview ==
+## Table of Contents
 
-- ff_generate_data: Generates synthetic airline data (`nn_historical.csv`), suitable for testing and experimentation.  
-- ff_train: Reads `nn_historical.csv`, trains a neural network, and saves model weights to disk (`nn_weights.bin`).  
-- flightfactor: (In the original version) Alternatively trains on load, or (in a separate version) loads pre-trained weights. Provides an interactive menu to list flight codes, query average predictions, output a CSV table, or predict for new/future flights.
+- [1. Project Overview](#1-project-overview)
+- [2. Directory Layout](#2-directory-layout)
+- [3. Installing / Building](#3-installing--building)
+- [4. Usage](#4-usage)
+  - [4.1 `ff_generate_data`](#41-ff_generate_data)
+  - [4.2 `ff_train`](#42-ff_train)
+  - [4.3 `flightfactor`](#43-flightfactor)
+- [5. Data Formats](#5-data-formats)
+  - [5.1 `nn_historical.csv`](#51-nn_historicalcsv)
+  - [5.2 `nn_weights.bin`](#52-nn_weightsbin)
+- [6. Extending FlightFactor](#6-extending-flightfactor)
+- [7. Support and Credits](#7-support-and-credits)
+- [8. Quick Reference](#8-quick-reference)
 
-The tools all reside in the FlightFactor project, with source code in `./src/`, object files in `./obj/`, and compiled executables in `./bin/`.
+---
 
-== 2. Directory Layout ==
+## 1. Project Overview
 
+- **`ff_generate_data`**  
+  Generates synthetic airline data (`nn_historical.csv`) for testing.  
 
-flightfactor/                     (Project root)
-├─ Makefile                       (Build instructions)
-├─ bin/                           (Final executables go here)
-├─ obj/                           (Compiled object files go here)
-└─ src/                           (Source directory)
-   ├─ ff_generate_data.c          (Sample data generator)
-   ├─ ff_train.c                  (Training tool that saves model)
-   └─ flightfactor.c              (Main menu tool for predictions)
+- **`ff_train`**  
+  Reads `nn_historical.csv`, trains a **single-hidden-layer neural network**, and saves the trained model weights and normalization stats to `nn_weights.bin`.  
 
+- **`flightfactor`**  
+  Provides an **interactive menu** to list flight codes, query average load/profit predictions by flight code, export predictions to a CSV, or forecast new/future flights.  
+  - In some variants, `flightfactor` can **train on load**; in others, it **loads** pre-trained weights from `nn_weights.bin` to skip retraining.
 
-== 3. Installing / Building ==
+---
 
-1. Install Dependencies  
-   - You only need a C compiler (e.g. GCC) and standard libraries (`libm` for math).  
-   - On Linux/Unix systems, you typically already have GCC and `-lm`.
+## 2. Directory Layout
 
-2. Compile  
-   - From the `flightfactor/` directory, run:
-     bash
+```
+flightfactor/
+├─ Makefile
+├─ bin/                           # Compiled executables appear here
+├─ obj/                           # Compiled object files
+└─ src/                           # Source code (.c)
+   ├─ ff_generate_data.c
+   ├─ ff_train.c
+   └─ flightfactor.c
+```
+
+- **Makefile**: Defines how to build each executable.  
+- **`bin/`**: Target directory for the compiled binaries (`ff_generate_data`, `ff_train`, and `flightfactor`).  
+- **`obj/`**: Holds `.o` (object) files created during compilation.  
+- **`src/`**: Contains the source files in C.
+
+---
+
+## 3. Installing / Building
+
+1. **Requirements**  
+   - A C compiler (e.g., GCC) and standard math library (`-lm`).  
+
+2. **Build**  
+   - In the project root (`flightfactor/`), run:
+     ```bash
      make
-     
-   - This invokes the Makefile, which:
-     1. Creates `obj/` and `bin/` if they don’t exist.  
-     2. Compiles `.c` source files from `./src/` into `.o` objects in `./obj/`.  
-     3. Links those object files into executables in `./bin/`.
+     ```
+   - This will:
+     1. Create `obj/` and `bin/` if not present.  
+     2. Compile each `.c` in `src/` to an object file in `obj/`.  
+     3. Link those object files into final executables in `bin/`.
 
-3. Executables  
-   - After building, you should see:
-     
-     bin/ff_generate_data
-     bin/ff_train
-     bin/flightfactor
-     
-
-4. Cleanup  
-   - To remove build artifacts:
-     bash
+3. **Clean**  
+   - Remove executables and object files:
+     ```bash
      make clean
-     
-   - This deletes `.o` files in `obj/` and the executables in `bin/`.
+     ```
 
+---
 
-== 4. Usage ==
+## 4. Usage
 
-== 4.1 `ff_generate_data` ==
+### 4.1 `ff_generate_data`
 
-- Purpose: Creates synthetic airline data in `nn_historical.csv`.  
-- Usage:
-  bash
+- **Purpose**: Creates synthetic airline flight data.  
+- **Usage**:
+  ```bash
   ./bin/ff_generate_data
-  
-  - By default, it may create 10,000 rows of data, but you can often change that in the source file (`#define ROWS 10000`).  
-  - Outputs `nn_historical.csv` in the current directory with random flight info columns.
+  ```
+- **Output**: By default, generates `nn_historical.csv` in the current directory with columns like Date, Flight_No, Seats, Booked_Pax, Fuel_Cost, Overhead, etc.
 
-== 4.2 `ff_train` ==
+### 4.2 `ff_train`
 
-- Purpose: Trains the neural network using `nn_historical.csv` and saves the learned model parameters to `nn_weights.bin`.  
-- Usage:
-  bash
+- **Purpose**: Trains the neural network on `nn_historical.csv` and saves model parameters to `nn_weights.bin`.  
+- **Usage**:
+  ```bash
   ./bin/ff_train
-  
-  - Expects `nn_historical.csv` to be in the same directory.  
-  - Performs feed-forward neural network training (one hidden layer).  
-  - After finishing, writes `nn_weights.bin` (a binary file) containing:
-    - W1, b1, W2, b2 (the network weights)  
-    - mean_in, std_in, mean_out, std_out (normalization stats)
+  ```
+- **Details**:
+  - Reads `nn_historical.csv`.  
+  - Normalizes the data (calculates means/std devs).  
+  - Performs feed-forward/backprop for a specified number of epochs (e.g., 100).  
+  - Saves:
+    - **W1**, **b1**, **W2**, **b2** (network weights)  
+    - **mean_in**, **std_in**, **mean_out**, **std_out** (normalization stats)  
+    into `nn_weights.bin`.
 
-== 4.3 `flightfactor` ==
+### 4.3 `flightfactor`
 
-- Purpose: Provides an interactive menu for forecasting flight load factor and profitability.  
-- Two variants exist:
-  1. Trains On Load version: Where `flightfactor` itself reads `nn_historical.csv`, trains, and then offers the menu.  
-  2. Load Pretrained version: Where `flightfactor` (or a similarly named executable) loads `nn_weights.bin` so it skips training.  
+- **Purpose**: Main interactive tool for listing flight codes, retrieving average predictions, exporting a table of predictions, or forecasting new/future flights.  
+- **Usage**:
+  ```bash
+  ./bin/flightfactor
+  ```
+- **Menu**:
+  ```
+  1) List all flight codes
+  2) Predict load & profit for a given flight code
+  3) Output table of predictions for every flight code (CSV)
+  4) Predict on new/future flight
+  5) Exit
+  ```
+- **Notes**:
+  - In one version, `flightfactor` trains on load by reading and processing `nn_historical.csv`.  
+  - In another version, it might **load** `nn_weights.bin` to skip training.  
+  - Let’s you see **Load Factor** and **Profit** predictions, aggregated by flight code or on a new flight entry.
 
-In either case, once launched, you’ll see a menu like:
+---
 
+## 5. Data Formats
 
-============================================
-   Neural Network Flight Forecasting Tool
-============================================
-1) List all flight codes
-2) Predict load & profit for a given flight code
-3) Output table of predictions for every flight code (CSV)
-4) Predict on new/future flight
-5) Exit
-Select an option:
+### 5.1 `nn_historical.csv`
 
+- **Columns** (17 total):
+  1. Date  
+  2. Flight_No  
+  3. Origin  
+  4. Destination  
+  5. Seats  
+  6. Booked_Pax  
+  7. Connecting_Pax  
+  8. Local_Pax  
+  9. Average_Fare  
+  10. Fuel_Cost_per_leg  
+  11. Crew_Cost_per_leg  
+  12. Landing_Fee  
+  13. Overhead_Cost  
+  14. Distance  
+  15. Flight_Time  
+  16. Competitor_Capacity  
+  17. Competitor_Fare  
 
-- Option 1: Lists unique flight codes found in your historical data.  
-- Option 2: Prompts for a code (e.g., `UA123`), then displays average predicted load factor & profit across rows that share that code.  
-- Option 3: Writes a CSV (`all_flight_predictions.csv`) summarizing each code’s average predictions.  
-- Option 4: Lets you enter data for a brand-new flight (seats, fare, competitor capacity, etc.) and returns immediate predictions.  
-- Option 5: Exits the program.
+- **Observed** load factor and profit are typically computed as:  
+  - `LoadFactor = Booked_Pax / Seats`  
+  - `Profit = (Booked_Pax * Average_Fare) - (Fuel + Crew + Landing + Overhead)`
 
-Usage Example:
-bash
-./bin/flightfactor
+### 5.2 `nn_weights.bin`
 
-or if you have a version specifically for pre-trained weights, you’d do:
-bash
-./bin/flightfactor
+- **Binary** file storing the neural network parameters and normalization stats:
+  1. `W1` (size `INPUT_SIZE x HIDDEN_SIZE`)  
+  2. `b1` (size `HIDDEN_SIZE`)  
+  3. `W2` (size `HIDDEN_SIZE x OUTPUT_SIZE`)  
+  4. `b2` (size `OUTPUT_SIZE`)  
+  5. `mean_in` (size `INPUT_SIZE`)  
+  6. `std_in` (size `INPUT_SIZE`)  
+  7. `mean_out` (size `OUTPUT_SIZE`)  
+  8. `std_out` (size `OUTPUT_SIZE`)
 
-(with the code that omits training and loads from `nn_weights.bin`).
+Any application that loads this file must read in the **same order**.
 
-== 5. Data Formats ==
+---
 
-== 5.1 `nn_historical.csv`   ==
-Typically has 17 columns (header row + flight data rows):
+## 6. Extending FlightFactor
 
-1. Date  
-2. Flight_No  
-3. Origin  
-4. Destination  
-5. Seats  
-6. Booked_Pax  
-7. Connecting_Pax  
-8. Local_Pax  
-9. Average_Fare  
-10. Fuel_Cost_per_leg  
-11. Crew_Cost_per_leg  
-12. Landing_Fee  
-13. Overhead_Cost  
-14. Distance  
-15. Flight_Time  
-16. Competitor_Capacity  
-17. Competitor_Fare  
+1. **Multiple Object Files**  
+   - If the project grows, consider splitting each tool into more `.c` files and adjusting the Makefile accordingly.  
+2. **GPU Acceleration**  
+   - For very large datasets, or advanced neural networks, consider libraries (e.g., C++ with CUDA) or a high-level ML framework.  
+3. **Train/Test Splits**  
+   - Currently, the examples train on all data. Real-world usage requires validation splits.  
+4. **Refining the Menu**  
+   - Could add subcommands, date-based queries, or real-time booking curve logic.
 
-The training or inference code uses these columns to compute or predict:
+---
 
-- Load Factor = Booked_Pax / Seats  
-- Profit = (Booked_Pax * Average_Fare) - (Fuel + Crew + Landing + Overhead)
+## 7. Support and Credits
 
-== 5.2 `nn_weights.bin`  ==
-Binary file storing:
+- **Authors**: Created for demonstration of a baseline neural network approach to airline forecasting in C.  
+- **License**: Provided “as is.” Consult the repository’s license file if present.
 
-1. `W1` (size `INPUT_SIZE x HIDDEN_SIZE`)  
-2. `b1` (size `HIDDEN_SIZE`)  
-3. `W2` (size `HIDDEN_SIZE x OUTPUT_SIZE`)  
-4. `b2` (size `OUTPUT_SIZE`)  
-5. `mean_in` (size `INPUT_SIZE`)  
-6. `std_in` (size `INPUT_SIZE`)  
-7. `mean_out` (size `OUTPUT_SIZE`)  
-8. `std_out` (size `OUTPUT_SIZE`)
+---
 
-Any code that loads this file must read in the exact same order.
+## 8. Quick Reference
 
+1. **Build**  
+   ```bash
+   cd flightfactor
+   make
+   ```
+2. **Generate**  
+   ```bash
+   ./bin/ff_generate_data   # -> outputs nn_historical.csv
+   ```
+3. **Train**  
+   ```bash
+   ./bin/ff_train          # -> reads nn_historical.csv, outputs nn_weights.bin
+   ```
+4. **Interact**  
+   ```bash
+   ./bin/flightfactor      # -> launches menu
+   ```
+5. **Clean**  
+   ```bash
+   make clean
+   ```
 
-== 6. Support and Credits ==
-
-- Authors: Brandon Burr - brandon@jetlogiq.com
-- License: Provided as-is; no warranties. Check the repository’s license file if present.
-
-== 7. Quick Reference ==
-
-== Build ==
-
-bash
-cd /code/flightfactor
-make
-
-
-== Run Generators ==
-
-bash
-./bin/ff_generate_data
-# -> outputs nn_historical.csv
-
-
-== Train ==
-
-bash
-./bin/ff_train
-# -> reads nn_historical.csv, saves nn_weights.bin
-
-
-== Inference / Menu ==
-
-bash
-./bin/flightfactor
-# -> provides interactive menu
+Enjoy exploring **FlightFactor** for airline flight forecasting!
+```
