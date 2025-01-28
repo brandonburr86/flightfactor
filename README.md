@@ -8,7 +8,7 @@
 
 - **ff_generate_data**: Generates synthetic airline data (`nn_historical.csv`), suitable for testing and experimentation.  
 - **ff_train**: Reads `nn_historical.csv`, trains a neural network, and saves model weights to disk (`nn_weights.bin`).  
-- **flightfactor**: (In the original version) Application loads pre-trained weights on start. Provides an interactive menu to list flight codes, query average predictions, output a CSV table, or predict for new/future flights.
+- **flightfactor**: Application loads pre-trained weights on start. Provides an interactive menu to list flight codes, query average predictions, output a CSV table, or predict for new/future flights.
 
 The tools **all** reside in the **FlightFactor** project, with source code in `./src/`, object files in `./obj/`, and compiled executables in `./bin/`.
 
