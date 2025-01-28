@@ -1,6 +1,6 @@
 # METHODOLOGY
 
-This document outlines a **detailed breakdown** of how the FlightFactor project uses **feed-forward neural networks** (FNNs) to address airline load-factor and profitability prediction. It is geared toward a **PhD-level expert in Airline Operations** with a strong background in **mathematics** and **software development**.
+This document outlines a **detailed breakdown** of how the FlightFactor project uses **feed-forward neural networks** (FNNs) to address airline load-factor and profitability prediction.
 
 ---
 
